@@ -76,6 +76,15 @@ export const registerUser = AsyncHandler(async (req, res, next) => {
 
   const hashPassword = await bcrypt.hash(password, 5);
 
+  const createTable = await pool.query(`
+    CREATE TABLE IF NOT EXISTS users(
+    id SERIAL PRIMARY KEY,
+name VARCHAR(50) NOT NULL,
+email VARCHAR(50) UNIQUE,
+password VARCHAR(50) NOT NULL
+    )
+    `);
+
   const createUser = await pool.query(
     `
     INSERT INTO users(name, email, password)
