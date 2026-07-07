@@ -79,9 +79,10 @@ export const registerUser = AsyncHandler(async (req, res, next) => {
   const createTable = await pool.query(`
     CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
-name VARCHAR(50) NOT NULL,
-email VARCHAR(50) UNIQUE,
-password VARCHAR(50) NOT NULL
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(50) UNIQUE,
+    password VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     `);
 
