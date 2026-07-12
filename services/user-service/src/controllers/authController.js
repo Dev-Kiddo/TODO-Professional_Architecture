@@ -2,6 +2,7 @@ import pool from "../config/dbConfig.js";
 import AsyncHandler from "../utils/AsyncHandler.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import amqp from "amqplib";
 
 export const getUsers = AsyncHandler(async (req, res, next) => {
   const users = await pool.query(`
@@ -123,11 +124,30 @@ export const registerUser = AsyncHandler(async (req, res, next) => {
     `
     INSERT INTO users(name, email, password)
     VALUES($1, $2, $3)
+    RETURNING *
     `,
     [name, email, hashPassword],
   );
 
   // console.log(createUser, "createUser");
+  const connection = await amqp.connect("amqp://localhost:5672");
+
+  const channel = await connection.createChannel();
+
+  const queueName = "user_register";
+
+  await channel.assertQueue(queueName, { durable: true });
+
+  const bufferMessage = Buffer.from(JSON.stringify(createUser.rows[0]));
+
+  console.log("bufferMessage", bufferMessage);
+
+  channel.sendToQueue(queueName, bufferMessage);
+
+  setTimeout(async () => {
+    await connection.close();
+    console.log(`Connection Closed ${queueName}`);
+  }, 500);
 
   return res.status(200).json({
     success: true,
