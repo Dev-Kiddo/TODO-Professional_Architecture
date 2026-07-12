@@ -5,7 +5,7 @@ export const protectAuth = AsyncHandler(async function (req, res, next) {
   const { accessToken } = req.cookies;
 
   if (!accessToken) {
-    console.log("Users Access token Not Found");
+    console.log("Todos Access token Not Found");
 
     return res.status(400).json({
       success: false,
@@ -14,8 +14,6 @@ export const protectAuth = AsyncHandler(async function (req, res, next) {
   }
 
   const verifyToken = jwt.verify(accessToken, process.env.JWT_SECRET);
-
-  console.log("VERIFY", verifyToken);
 
   if (!verifyToken) {
     return res.status(403).json({

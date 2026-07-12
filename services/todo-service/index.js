@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import todoRouter from "./src/routes/todoRoute.js";
 import error from "../user-service/src/middlewares/error.js";
+import cookieParser from "cookie-parser";
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,8 +22,9 @@ process.on("unhandledRejection", (error) => {
 });
 
 app.use(express.json());
+app.use(cookieParser());
 
-app.use(todoRouter);
+app.use("/api/v1", todoRouter);
 
 app.use(error);
 

@@ -55,6 +55,39 @@ export const getCurrentUser = AsyncHandler(async (req, res, next) => {
   });
 });
 
+export const getUser = AsyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  console.log("ID", id);
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Id not found!",
+    });
+  }
+
+  const currentUser = await pool.query(
+    `
+        SELECT * FROM users WHERE id=$1
+        `,
+    [id],
+  );
+
+  if (currentUser.rows.length === 0) {
+    return res.status(401).json({
+      success: false,
+      message: "User not found!",
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Get User Successfuly!",
+    data: currentUser.rows[0],
+  });
+});
+
 export const registerUser = AsyncHandler(async (req, res, next) => {
   const { name, email, password } = req.body;
 
@@ -107,7 +140,7 @@ export const loginUser = AsyncHandler(async (req, res, next) => {
 
   const isUserRegistered = await pool.query(
     `
-    SELECT email, password FROM users
+    SELECT id, email, password FROM users
     WHERE email=$1
     `,
     [email],
@@ -123,6 +156,7 @@ export const loginUser = AsyncHandler(async (req, res, next) => {
   }
 
   const loginUser = isUserRegistered.rows[0];
+  // console.log("LOGIN", loginUser);
 
   const isPasswordValid = bcrypt.compare(password, loginUser.password);
 
@@ -133,7 +167,9 @@ export const loginUser = AsyncHandler(async (req, res, next) => {
     });
   }
 
-  const token = jwt.sign({ email: loginUser.email }, process.env.JWT_SECRET, { expiresIn: "1d" });
+  const token = jwt.sign({ id: loginUser.id, email: loginUser.email }, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+  // console.log("TOK", token);
 
   res.cookie("accessToken", token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "none", secure: true }); // 86400000
 
