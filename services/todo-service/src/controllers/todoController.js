@@ -1,5 +1,6 @@
 import AsyncHandler from "../utils/AsyncHandler.js";
 import pool from "../config/dbConfig.js";
+import amqp from "amqplib";
 
 export const createTodo = AsyncHandler(async (req, res, next) => {
   const currentUser = req.user;
@@ -49,9 +50,29 @@ export const createTodo = AsyncHandler(async (req, res, next) => {
     `
           INSERT INTO todos(title, description, user_id)
           VALUES($1, $2, $3)
+          RETURNING *
           `,
     [title, description, currentUser.id],
   );
+
+  //? RABBITMW CONFIG's
+
+  const connection = await amqp.connect(process.env.RABBITMQ_URL);
+
+  const channel = await connection.createChannel();
+
+  const queueName = "todo_created";
+
+  await channel.assertQueue(queueName, { durable: true });
+
+  const bufferMessage = Buffer.from(JSON.stringify({ event: queueName, data: todo.rows[0], email: currentUser.email }));
+
+  channel.sendToQueue(queueName, bufferMessage);
+
+  setTimeout(async () => {
+    await connection.close();
+    console.log(`Connection closed todo_created`);
+  }, 500);
 
   return res.status(200).json({
     success: true,

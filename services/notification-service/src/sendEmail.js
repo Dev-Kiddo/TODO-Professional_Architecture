@@ -1,7 +1,7 @@
-import nodemailer from "nodemailer";
-import amqp from "amqplib";
 import dotenv from "dotenv";
 dotenv.config();
+import nodemailer from "nodemailer";
+import amqp from "amqplib";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -15,36 +15,89 @@ console.log(process.env.EMAIL_USER);
 
 const sendEmail = async function () {
   try {
-    const connection = await amqp.connect("amqp://localhost:5672");
+    //? RABBITMQ CONFIG's
+    const connection = await amqp.connect(process.env.RABBITMQ_URL);
 
     const channel = await connection.createChannel();
 
     await channel.assertQueue("user_register", { durable: true });
+    await channel.assertQueue("todo_created", { durable: true });
 
     channel.prefetch(1);
 
     channel.consume("user_register", async (message) => {
-      if (!message) console.log("message not found");
+      try {
+        if (!message) {
+          console.log("message not found");
+          return;
+        }
+        console.log("Received Message");
+        const content = JSON.parse(message.content.toString());
+        console.log("CONTENT", content);
 
-      console.log("message", message);
+        if (content.event === "user_register") {
+          await sendWelcomeEmail(content);
+        }
 
-      const content = JSON.parse(message.content.toString());
+        channel.ack(message);
+      } catch (error) {
+        console.error("Error processing message:", error.message);
+        channel.nack(message, false, true);
+      }
+    });
 
-      console.log("content1", content);
+    channel.consume("todo_created", async (message) => {
+      try {
+        if (!message) {
+          console.log("message not found");
+          return;
+        }
+        console.log("Received Message");
+        const content = JSON.parse(message.content.toString());
 
-      const info = await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: content.email,
-        subject: "Email Using Nodemailer_RabbitMQ",
-        text: "Hello world!",
-        html: `<b>Hehe now you have understood it, Right?</b><h1>${content.email}</h1>`,
-      });
+        console.log("CONTENT", content);
 
-      console.log("Email Sent", info.messageId);
+        if (content.event === "todo_created") {
+          await sendTodoCreatedNotification(content);
+        }
+
+        channel.ack(message);
+      } catch (error) {
+        console.error("Error processing message:", error.message);
+        channel.nack(message, false, true);
+      }
     });
   } catch (error) {
     console.log(`Error while sending mail: ${error}`);
   }
+};
+
+const sendWelcomeEmail = async function (content) {
+  console.log("Sending email...");
+  const info = await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: content.data.email,
+    subject: "📧-Todo Micro services",
+    html: `<b>Hello ${content.data.name}</b>
+    <p>Your Registration Success.</p>
+    <p>Now, you can start to create todo's🎉</p>
+    `,
+  });
+
+  console.log("Email Sent", info.messageId);
+};
+
+const sendTodoCreatedNotification = async function (content) {
+  console.log("Sending email...");
+
+  const info = await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: content.email,
+    subject: "📧-Todo Micro services",
+    html: `<b>Hello!</b><p>Your Todo Creation Success.</p>`,
+  });
+
+  console.log("Email Sent", info.messageId);
 };
 
 export default sendEmail;

@@ -124,13 +124,15 @@ export const registerUser = AsyncHandler(async (req, res, next) => {
     `
     INSERT INTO users(name, email, password)
     VALUES($1, $2, $3)
-    RETURNING *
+    RETURNING name, email, created_at
     `,
     [name, email, hashPassword],
   );
 
   // console.log(createUser, "createUser");
-  const connection = await amqp.connect("amqp://localhost:5672");
+
+  //? RABBITMQ CONFIG's
+  const connection = await amqp.connect(process.env.RABBITMQ_URL);
 
   const channel = await connection.createChannel();
 
@@ -138,9 +140,7 @@ export const registerUser = AsyncHandler(async (req, res, next) => {
 
   await channel.assertQueue(queueName, { durable: true });
 
-  const bufferMessage = Buffer.from(JSON.stringify(createUser.rows[0]));
-
-  console.log("bufferMessage", bufferMessage);
+  const bufferMessage = Buffer.from(JSON.stringify({ event: queueName, data: createUser.rows[0] }));
 
   channel.sendToQueue(queueName, bufferMessage);
 
