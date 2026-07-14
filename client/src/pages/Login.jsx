@@ -1,9 +1,15 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import ContentBlock from "../components/ContentBlock";
 import Button from "../components/Button";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../contexts/AppContext";
 
 function Login() {
+  const { setUser } = useContext(AppContext);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -14,10 +20,20 @@ function Login() {
     setFormData((data) => ({ ...data, [id]: value }));
   };
 
-  const onSubmitHandler = function (e) {
+  const onSubmitHandler = async function (e) {
     e.preventDefault();
 
     console.log("Clicking");
+
+    const res = await axios.post(`${import.meta.env.VITE_USER_SERVICE}/login`, formData, { withCredentials: true });
+
+    // console.log(res);
+    setUser(res.data.user);
+    localStorage.setItem("currentUser", JSON.stringify(res.data.user));
+
+    toast.success(res.data.message);
+
+    navigate("/todo");
   };
   return (
     <section className="min-w-5xl">

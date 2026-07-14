@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import ContentBlock from "../components/ContentBlock";
 import Button from "../components/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,10 +18,17 @@ function Register() {
     setFormData((data) => ({ ...data, [id]: value }));
   };
 
-  const onSubmitHandler = function (e) {
+  const onSubmitHandler = async function (e) {
     e.preventDefault();
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_USER_SERVICE}/register`, formData);
 
-    console.log("Clicking");
+      console.log("RES", res);
+      navigate("/login");
+      toast.success(res.data.message);
+    } catch (error) {
+      console.error(error);
+    }
   };
   return (
     <section className="min-w-5xl">
@@ -35,7 +45,7 @@ function Register() {
               id="name"
               placeholder="Name"
               autoComplete="off"
-              className="w-full rounded-md border border-gray-200 bg-white py-3 px-6 text-base font-medium text-gray-500 outline-none focus:border-blue-600 focus:shadow-md"
+              className="w-full rounded-md border border-gray-200 bg-white py-3 px-6 text-sm font-medium text-gray-500 outline-none focus:border-blue-600 focus:shadow-md"
               value={formData.name}
               onChange={formHandler}
             />
@@ -50,7 +60,7 @@ function Register() {
               id="email"
               placeholder="Email"
               autoComplete="off"
-              className="w-full rounded-md border border-gray-200 bg-white py-3 px-6 text-base font-medium text-gray-500 outline-none focus:border-blue-600 focus:shadow-md"
+              className="w-full rounded-md border border-gray-200 bg-white py-3 px-6 text-sm font-medium text-gray-500 outline-none focus:border-blue-600 focus:shadow-md"
               value={formData.email}
               onChange={formHandler}
             />
@@ -64,7 +74,7 @@ function Register() {
               type="password"
               id="password"
               placeholder="Password"
-              className="w-full rounded-md border border-gray-200 bg-white py-3 px-6 text-base font-medium text-gray-500 outline-none focus:border-blue-600 focus:shadow-md"
+              className="w-full rounded-md border border-gray-200 bg-white py-3 px-6 text-sm font-medium text-gray-500 outline-none focus:border-blue-600 focus:shadow-md"
               value={formData.password}
               onChange={formHandler}
             />

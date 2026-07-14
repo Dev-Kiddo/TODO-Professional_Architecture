@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import amqp from "amqplib";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const getUsers = AsyncHandler(async (req, res, next) => {
   const users = await pool.query(`
         SELECT * FROM users
@@ -160,7 +162,7 @@ export const loginUser = AsyncHandler(async (req, res, next) => {
 
   const isUserRegistered = await pool.query(
     `
-    SELECT id, email, password FROM users
+    SELECT * FROM users
     WHERE email=$1
     `,
     [email],
@@ -191,16 +193,21 @@ export const loginUser = AsyncHandler(async (req, res, next) => {
 
   // console.log("TOK", token);
 
-  res.cookie("accessToken", token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "none", secure: true }); // 86400000
+  res.cookie("accessToken", token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, secure: isProduction, sameSite: isProduction ? "none" : "lax" }); // 86400000
 
   return res.status(200).json({
     success: true,
     message: "Login Success!",
+    user: { id: loginUser.id, name: loginUser.name, email: loginUser.email },
   });
 });
 
 export const logoutUser = AsyncHandler(async (req, res, next) => {
-  res.clearCookie("accessToken");
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+  });
 
   return res.status(200).json({
     success: true,
