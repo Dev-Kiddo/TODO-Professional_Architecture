@@ -23,18 +23,18 @@ function Todo() {
       e.preventDefault();
       setLoading(true);
 
-      console.log("Clicking");
+      // console.log("Clicking");
 
       const res = await axios.post(`${import.meta.env.VITE_TODO_SERVICE}/todos`, formData, { withCredentials: true });
 
       // console.log("RES", res);
-      console.log("todos", todos);
+      // console.log("todos", todos);
 
       setTodos((todos) => (todos ? [res.data.todo, ...todos] : [res.data.todo]));
 
       setFormData((form) => ({ ...form, title: "", description: "" }));
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }

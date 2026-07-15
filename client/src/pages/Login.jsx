@@ -22,18 +22,22 @@ function Login() {
 
   const onSubmitHandler = async function (e) {
     e.preventDefault();
+    try {
+      console.log("Clicking");
 
-    console.log("Clicking");
+      const res = await axios.post(`${import.meta.env.VITE_USER_SERVICE}/login`, formData, { withCredentials: true });
 
-    const res = await axios.post(`${import.meta.env.VITE_USER_SERVICE}/login`, formData, { withCredentials: true });
+      console.log(res);
+      setUser(res.data.user);
+      localStorage.setItem("currentUser", JSON.stringify(res.data.user));
 
-    // console.log(res);
-    setUser(res.data.user);
-    localStorage.setItem("currentUser", JSON.stringify(res.data.user));
+      toast.success(res.data.message);
 
-    toast.success(res.data.message);
-
-    navigate("/todo");
+      navigate("/todo");
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    }
   };
   return (
     <section className="min-w-5xl">

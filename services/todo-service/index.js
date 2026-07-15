@@ -10,14 +10,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 process.on("uncaughtException", (error) => {
-  console.log(`Error: ${error.message}`);
-  console.log("Server is Shutting down, Due to Uncaught Exception");
+  console.error(`Error: ${error.message}`);
+  console.error("Server is Shutting down, Due to Uncaught Exception");
   process.exit(1);
 });
 
 process.on("unhandledRejection", (error) => {
-  console.log(`Error: ${error.message}`);
-  console.log("Server is shuting down, due to Unhandled Rejection");
+  console.error(`Error: ${error.message}`);
+  console.error("Server is shuting down, due to Unhandled Rejection");
   process.exit(1);
 });
 

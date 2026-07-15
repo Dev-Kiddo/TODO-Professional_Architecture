@@ -15,7 +15,7 @@ export const protectAuth = AsyncHandler(async function (req, res, next) {
 
   const verifyToken = jwt.verify(accessToken, process.env.JWT_SECRET);
 
-  console.log("VERIFY", verifyToken);
+  // console.log("VERIFY", verifyToken);
 
   if (!verifyToken) {
     return res.status(403).json({

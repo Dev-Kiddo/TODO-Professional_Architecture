@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-console.log(process.env.EMAIL_USER);
+// console.log(process.env.EMAIL_USER);
 
 const sendEmail = async function () {
   try {
@@ -68,7 +68,7 @@ const sendEmail = async function () {
       }
     });
   } catch (error) {
-    console.log(`Error while sending mail: ${error}`);
+    console.error(`Error while sending mail: ${error}`);
   }
 };
 
