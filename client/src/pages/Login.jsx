@@ -23,11 +23,11 @@ function Login() {
   const onSubmitHandler = async function (e) {
     e.preventDefault();
     try {
-      console.log("Clicking");
+      // console.log("Clicking");
 
       const res = await axios.post(`${import.meta.env.VITE_USER_SERVICE}/login`, formData, { withCredentials: true });
 
-      console.log(res);
+      // console.log(res);
       setUser(res.data.user);
       localStorage.setItem("currentUser", JSON.stringify(res.data.user));
 
@@ -35,7 +35,7 @@ function Login() {
 
       navigate("/todo");
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error(error.message);
     }
   };

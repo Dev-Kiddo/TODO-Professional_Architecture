@@ -1,0 +1,148 @@
+version: "3.8"
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - client
+      - user-service
+      - todo-service
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  postgres-users:
+    image: postgres:15-alpine
+    container_name: postgres-users
+    environment:
+      POSTGRES_DB: user-service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d user-service"]
+      interval: 10s
+      timeout: 20s
+      retries: 5
+    restart: unless-stopped
+
+  postgres-todos:
+    image: postgres:15-alpine
+    container_name: postgres-todos
+    environment:
+      POSTGRES_DB: todo-service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    volumes:
+      - postgres_todos_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d todo-service"]
+      interval: 10s
+      timeout: 20s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - 15672:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 20s
+      retries: 5
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    environment:
+      PORT: 5001
+      JWT_SECRET: thisismyjwtsupersecretkey
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      POSTGRES_DB: user-service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    depends_on:
+      postgres-users:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  todo-service:
+    build:
+      context: ./services/todo-service
+      dockerfile: Dockerfile
+    container_name: todo-service
+    environment:
+      PORT: 5002
+      JWT_SECRET: thisismyjwtsupersecretkey
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      POSTGRES_DB: todo-service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    depends_on:
+      postgres-todos:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    environment:
+      PORT: 5003
+      EMAIL_USER: dev.ryan.here@gmail.com
+      EMAIL_PASS: sfox okvl gwxj iten
+      RABBITMQ_URL: amqp://rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: client
+    volumes:
+      - ./client/src:/app/src
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_users_data:
+  postgres_todos_data:
+  rabbitmq_data:

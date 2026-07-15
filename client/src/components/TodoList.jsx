@@ -26,17 +26,17 @@ function TodoList() {
 
     toast.success(res.data.message);
 
-    console.log("RES", res);
+    // console.log("RES", res);
   };
 
   const onUpdateHandler = async function (todo) {
-    console.log("Todo", todo);
+    // console.log("Todo", todo);
 
     const res = await axios.patch(`${import.meta.env.VITE_TODO_SERVICE}/todos/${todo.id}`, { is_completed: todo.is_completed }, { withCredentials: true });
 
     toast.success(res.data.message);
 
-    console.log("RES", res);
+    // console.log("RES", res);
   };
 
   useEffect(() => {
@@ -46,7 +46,7 @@ function TodoList() {
 
         setTodos(res.data.todo);
       } catch (error) {
-        console.log("Err at Fetch Todo", error);
+        // console.log("Err at Fetch Todo", error);
       }
     };
 

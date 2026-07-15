@@ -8,7 +8,7 @@ function Header() {
   const { user, setUser } = useContext(AppContext);
 
   const onLogoutHandler = async function (e) {
-    console.log("clicking");
+    // console.log("clicking");
     e.preventDefault();
 
     const res = await axios.get(`${import.meta.env.VITE_USER_SERVICE}/logout`, { withCredentials: true });

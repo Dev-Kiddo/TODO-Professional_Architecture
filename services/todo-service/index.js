@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import todoRouter from "./src/routes/todoRoute.js";
-import error from "../user-service/src/middlewares/error.js";
+// import error from "../user-service/src/middlewares/error.js";
+import error from "./src/middlewares/error.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
