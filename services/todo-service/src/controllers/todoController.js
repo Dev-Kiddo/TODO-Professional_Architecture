@@ -8,7 +8,7 @@ export const createTodo = AsyncHandler(async (req, res, next) => {
   const { title, description } = req.body;
 
   const initilizeTable = await pool.query(`
-        CREATE TABLE If NOT EXISTS todos(
+        CREATE TABLE IF NOT EXISTS todos(
         id SERIAL PRIMARY KEY,
         title VARCHAR(50) NOT NULL,
         description VARCHAR(100) NOT NULL,

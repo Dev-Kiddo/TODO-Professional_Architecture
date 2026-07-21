@@ -61,8 +61,6 @@ export const getCurrentUser = AsyncHandler(async (req, res, next) => {
 export const getUser = AsyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
-  console.log("ID", id);
-
   if (!id) {
     return res.status(400).json({
       success: false,

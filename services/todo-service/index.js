@@ -9,6 +9,8 @@ import cors from "cors";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+console.log(process.env.CLIENT_URL);
+
 process.on("uncaughtException", (error) => {
   console.error(`Error: ${error.message}`);
   console.error("Server is Shutting down, Due to Uncaught Exception");

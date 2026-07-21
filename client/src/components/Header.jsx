@@ -11,6 +11,8 @@ function Header() {
     console.log("clicking");
     e.preventDefault();
 
+    console.log(`${import.meta.env.VITE_USER_SERVICE}/logout`);
+
     const res = await axios.get(`${import.meta.env.VITE_USER_SERVICE}/logout`, { withCredentials: true });
 
     setUser({});
