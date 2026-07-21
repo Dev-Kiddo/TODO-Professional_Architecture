@@ -80,7 +80,7 @@ function Register() {
             />
           </div>
 
-          <Button>Login</Button>
+          <Button>Register</Button>
 
           <div className="mt-4">
             <p className="text-sm text-center">

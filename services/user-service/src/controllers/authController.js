@@ -94,9 +94,19 @@ export const getUser = AsyncHandler(async (req, res, next) => {
 export const registerUser = AsyncHandler(async (req, res, next) => {
   const { name, email, password } = req.body;
 
+  const createTable = await pool.query(`
+    CREATE TABLE IF NOT EXISTS users(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(50) UNIQUE,
+    password VARCHAR(250) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    `);
+
   const existingUser = await pool.query(
     `
-    SELECT email from USERS WHERE email=$1
+    SELECT email from users WHERE email=$1
     `,
     [email],
   );
@@ -111,16 +121,6 @@ export const registerUser = AsyncHandler(async (req, res, next) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 5);
-
-  const createTable = await pool.query(`
-    CREATE TABLE IF NOT EXISTS users(
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    email VARCHAR(50) UNIQUE,
-    password VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    `);
 
   const createUser = await pool.query(
     `
