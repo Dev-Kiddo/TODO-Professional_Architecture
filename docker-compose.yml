@@ -138,6 +138,9 @@ services:
       context: ./client
       dockerfile: Dockerfile
     container_name: client
+    environment:
+      VITE_USER_SERVICE: /api/v1/users
+      VITE_TODO_SERVICE: /api/v1
     volumes:
       - ./client/src:/app/src
     networks:
